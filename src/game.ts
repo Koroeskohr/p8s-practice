@@ -1,47 +1,61 @@
 import 'phaser';
+import Sequence from 'phaser3-rex-plugins/plugins/sequence';
+import SequencePlugin from 'phaser3-rex-plugins/plugins/sequence-plugin';
+import { Player } from './player';
+import { generateScenario, Scenario } from './scenario';
 
-export default class Demo extends Phaser.Scene
-{
-    constructor ()
-    {
-        super('demo');
-    }
+export default class Demo extends Phaser.Scene {
+  private player: Player
+  constructor() {
+    super('demo');
+  }
 
-    preload ()
-    {
-        this.load.image('logo', 'assets/phaser3-logo.png');
-        this.load.image('libs', 'assets/libs.png');
-        this.load.glsl('bundle', 'assets/plasma-bundle.glsl.js');
-        this.load.glsl('stars', 'assets/starfields.glsl.js');
-    }
+  preload() {
+    this.load.image('arena', 'assets/arena.jpg');
+    this.load.image('charge', 'assets/charge.png');
+  }
 
-    create ()
-    {
-        this.add.shader('RGB Shift Field', 0, 0, 800, 600).setOrigin(0);
+  create() {
+    const arena = this.add.image(400, 400, 'arena');
+    arena.setScale(6, 6)
 
-        this.add.shader('Plasma', 0, 412, 800, 172).setOrigin(0);
+    this.player = new Player(this)
 
-        this.add.image(400, 300, 'libs');
+    const sc = new Scenario(this)
 
-        const logo = this.add.image(400, 70, 'logo');
+    const seq = new Sequence();
+    const events = generateScenario()
 
-        this.tweens.add({
-            targets: logo,
-            y: 350,
-            duration: 1500,
-            ease: 'Sine.inOut',
-            yoyo: true,
-            repeat: -1
-        })
-    }
+    seq.load(events, sc)
+    seq.start()
+  }
+
+  update(time: number, delta: number): void {
+    console.log('update')
+    this.player.setDirection(this.game.input.mousePointer.x, this.game.input.mousePointer.y)
+  }
+
 }
 
 const config = {
-    type: Phaser.AUTO,
-    backgroundColor: '#125555',
-    width: 800,
-    height: 600,
-    scene: Demo
+  type: Phaser.AUTO,
+  backgroundColor: '#125555',
+  width: 800,
+  height: 800,
+  scene: Demo,
+  plugins: {
+    global: [{
+      key: 'rexSequence',
+      plugin: SequencePlugin,
+      start: true
+    }]
+  },
+  physics:{
+    default: "arcade",
+    arcade: {
+      debug: false
+    }
+  },
 };
 
 const game = new Phaser.Game(config);
